@@ -1,0 +1,23 @@
+version: '3'
+services:      
+  db:
+    image: mariadb:10.3
+    volumes:
+    - db-data:/var/lib/mysql
+    environment:
+    - "MYSQL_ALLOW_EMPTY_PASSWORD=yes"
+    - "MYSQL_ROOT_PASSWORD="
+    - "MYSQL_DATABASE=homework4"
+  web:
+    image: openjdk:8
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - 8080:8080
+    command: bash -c "
+      ./mvnw package &&
+      java -jar target/homework4-1.jar"
+
+volumes:
+    db-data: {}

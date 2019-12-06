@@ -1,0 +1,47 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        body {
+            text-align: center;
+        }
+        form, select, input, option, button {
+            font-size: 24px;
+        }
+        button {
+            display: block;
+            margin: 16px auto;
+        }
+        input {
+            width: 192px;
+        }
+        span {
+            display: block;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<h1>Currency converter</h1>
+<div>
+    <form action="/" method="POST">
+        <input type="number" step="any" name="value" th:value="${fromValue}"/>
+        <select name="fromCurrencyId">
+            <option th:each="currency : ${currencies}" th:text="${currency.name}"
+                    th:value="${currency.id}" th:selected="${currency.id == fromCurrencyId}">
+            </option>
+        </select>
+        →
+        <select name="toCurrencyId">
+            <option th:each="currency : ${currencies}" th:text="${currency.name}"
+                    th:value="${currency.id}" th:selected="${currency.id == toCurrencyId}">
+            </option>
+        </select>
+        =
+        <input disabled th:value="${toValue}">
+        <button type="submit">Convert</button>
+        <span th:text="${error}"></span>
+    </form>
+</div>
+</body>
+</html>
