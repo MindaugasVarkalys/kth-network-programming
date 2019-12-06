@@ -14,7 +14,7 @@ services:
     volumes:
       - ./:/app
     ports:
-      - 8080:8080
+      - 127.0.0.1:8080:8080
     command: bash -c "
       ./mvnw package &&
       java -jar target/homework4-1.jar"
