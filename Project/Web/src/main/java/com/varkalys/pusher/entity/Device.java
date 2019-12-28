@@ -20,4 +20,5 @@ public class Device {
     private String model;
     private String name;
     private String appPackage;
+    private boolean isActive;
 }
