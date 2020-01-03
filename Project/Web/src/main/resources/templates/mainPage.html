@@ -1,6 +1,48 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <title>Pusher - push notifications service</title>
+</head>
 <body>
-Hi!
+    <div class="container mt-5">
+        <h1>Pusher</h1>
+        <h2 class="font-italic font-weight-light">Push notifications service for Android apps</h2>
+        <p>Download sample Android app from here: <a href="https://github.com">https://github.com</a></p>
+
+        <form class="mt-5" method="post">
+            <div class="form-group">
+                <label for="title">Notification title</label>
+                <input type="text" id="title" class="form-control" name="title" required/>
+            </div>
+
+            <div class="form-group">
+                <label for="content">Notification content</label>
+                <textarea id="content" class="form-control" name="content" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Notification recipients</label>
+                <ul class="list-group">
+                    <th:block th:each="device : ${devices}">
+                        <li class="list-group-item">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" th:id="${device.getId()}" th:value="${device.getId()}" name="deviceIds">
+                                <label class="form-check-label" th:for="${device.getId()}" th:inline="text">
+                                    [[${device.getModel() + " " + device.getName()}]]
+                                    <span th:if="${device.isActive()}" class="badge badge-success">Active now</span>
+                                    <span th:if="${!device.isActive()}" class="badge badge-secondary" th:with="prettyTime=${new org.ocpsoft.prettytime.PrettyTime()}" th:text='${"Active " + prettyTime.format(device.getActiveAt())}'></span>
+                                </label>
+                            </div>
+                        </li>
+                    </th:block>
+                </ul>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Send notification</button>
+        </form>
+    </div>
 </body>
 </html>

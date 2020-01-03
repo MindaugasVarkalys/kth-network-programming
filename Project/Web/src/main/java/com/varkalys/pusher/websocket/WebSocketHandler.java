@@ -23,7 +23,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final Gson gson = new Gson();
     private final DeviceRepository deviceRepository;
     private final TransmissionRepository transmissionRepository;
-    private final Map<Device, WebSocketSession> sessions = new HashMap<>();
+    private final Map<String, WebSocketSession> sessions = new HashMap<>();
 
     public WebSocketHandler(DeviceRepository deviceRepository, TransmissionRepository transmissionRepository) {
         this.deviceRepository = deviceRepository;
@@ -34,20 +34,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
     public void handleTextMessage(WebSocketSession session, TextMessage message) {
         DeviceMessage deviceMessage = gson.fromJson(message.getPayload(), DeviceMessage.class);
         Device device = getOrCreateDevice(deviceMessage);
-        sessions.put(device, session);
+        sessions.put(device.getAndroidId(), session);
         sendPendingDeviceNotifications(device);
-
-        Notification n = new Notification();
-        n.setContent("Not");
-        n.setTitle("TTTT");
-        Transmission t = new Transmission();
-        t.setNotification(n);
-        t.setDevice(device);
-        try {
-            transmitNotification(t);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private Device getOrCreateDevice(DeviceMessage deviceMessage) {
@@ -55,24 +43,22 @@ public class WebSocketHandler extends TextWebSocketHandler {
         if (device == null) {
             device = new Device();
             device.setAndroidId(deviceMessage.getAndroidId());
-            deviceRepository.save(device);
         }
         device.setModel(deviceMessage.getModel());
         device.setName(deviceMessage.getName());
         device.setAppPackage(deviceMessage.getAppPackage());
-        device.setActive(true);
-        deviceRepository.flush();
-        return device;
+        device.setActiveAt(new Date());
+        return deviceRepository.saveAndFlush(device);
     }
 
     private void sendPendingDeviceNotifications(Device device) {
-        List<Transmission> transmissions = transmissionRepository.findByDevice(device);
+        List<Transmission> transmissions = transmissionRepository.findNotSentByDevice(device.getId());
         for (Transmission transmission : transmissions) {
             tryTransmitNotification(transmission);
         }
     }
 
-    private void tryTransmitNotification(Transmission transmission) {
+    public void tryTransmitNotification(Transmission transmission) {
         try {
             transmitNotification(transmission);
         } catch (IOException ex) {
@@ -81,23 +67,28 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     private void transmitNotification(Transmission transmission) throws IOException {
+        WebSocketSession session = sessions.get(transmission.getDevice().getAndroidId());
+        if (session == null) {
+            return;
+        }
         NotificationMessage message = new NotificationMessage();
         message.setTitle(transmission.getNotification().getTitle());
         message.setContent(transmission.getNotification().getContent());
         String payload = gson.toJson(message);
-        WebSocketSession session = sessions.get(transmission.getDevice());
         session.sendMessage(new TextMessage(payload));
         transmission.setSentAt(new Date());
-        transmissionRepository.flush();
+        transmissionRepository.saveAndFlush(transmission);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        for (Device device : sessions.keySet()) {
-            if (sessions.get(device).equals(session)) {
+        for (String deviceId : sessions.keySet()) {
+            if (sessions.get(deviceId).equals(session)) {
+                Device device = deviceRepository.findByAndroidId(deviceId);
                 device.setActive(false);
-                sessions.remove(device);
-                deviceRepository.flush();
+                device.setActiveAt(new Date());
+                sessions.remove(deviceId);
+                deviceRepository.saveAndFlush(device);
                 return;
             }
         }

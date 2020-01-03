@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.util.Date;
 
 @Entity
 @Getter
@@ -21,4 +22,5 @@ public class Device {
     private String name;
     private String appPackage;
     private boolean isActive;
+    private Date activeAt;
 }
