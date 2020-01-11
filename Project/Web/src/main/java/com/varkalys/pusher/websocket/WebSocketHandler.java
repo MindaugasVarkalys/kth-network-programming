@@ -47,6 +47,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         device.setModel(deviceMessage.getModel());
         device.setName(deviceMessage.getName());
         device.setAppPackage(deviceMessage.getAppPackage());
+        device.setActive(true);
         device.setActiveAt(new Date());
         return deviceRepository.saveAndFlush(device);
     }
