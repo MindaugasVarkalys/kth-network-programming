@@ -5,10 +5,9 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.tinder.scarlet.Scarlet
@@ -46,7 +45,9 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.launch {
             pusherService.observeWebsocketEvent().consumeEach {
                 if (it is WebSocket.Event.OnConnectionOpened<*>) {
-                    textView.text = "Connected"
+                    runOnUiThread {
+                        textView.text = "Connected"
+                    }
                     pusherService.sendDeviceMessage(
                         DeviceMessage(
                             Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID),
